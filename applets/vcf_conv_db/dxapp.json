@@ -22,7 +22,7 @@
       "label": "Summary File",
       "help": "A federated database summary file with allele frequency for the cohort.",
       "class": "file",
-      "patterns": ["summaryfile.txt"]
+      "patterns": ["*.txt"]
     },
     {
       "name": "summaryDB",
@@ -36,6 +36,11 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/vcf_conv_db.sh",
+    "execDepends":
+    [
+      {"name": "pyVCF",
+       "package_manager": "pip"}
+    ],
     "systemRequirements": {
       "*": {
         "instanceType": "mem1_ssd1_x4"
@@ -43,5 +48,8 @@
     },
     "distribution": "Ubuntu",
     "release": "12.04"
+  },
+  "access": {
+      "network": ["*"]
   }
 }
