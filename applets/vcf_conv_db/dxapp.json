@@ -1,0 +1,47 @@
+{
+  "name": "vcf_conv_db",
+  "title": "VCF convert DB",
+  "summary": "Extract AF from cohort-level VCF into a database format",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "vcf",
+      "label": "Cohort Level VCF file",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.vcf"
+      ],
+      "help": "A VCF file containing variants"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "summaryfile",
+      "label": "Summary File",
+      "help": "A federated database summary file with allele frequency for the cohort.",
+      "class": "file",
+      "patterns": ["summaryfile.txt"]
+    },
+    {
+      "name": "summaryDB",
+      "label": "Summary database",
+      "help": "A database of the variant for the cohort",
+      "class": "file",
+      "patterns": ["*.db"]
+    }
+
+],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/vcf_conv_db.sh",
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  }
+}
