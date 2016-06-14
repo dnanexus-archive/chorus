@@ -1,0 +1,53 @@
+{
+  "name": "appending_queried_VCF",
+  "title": "appending_queried_VCF",
+  "summary": "appending_queried_VCF",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "input_vcf",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*.vcf"],
+      "help": ""
+    },
+    {
+      "name": "queried_vcf",
+      "class": "array:file",
+      "optional": false,
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    },
+    {
+      "name": "database_name",
+      "label": "rename database (rename by order of file selected separated by comma)",
+      "class": "string",
+      "optional": true,
+      "help": ""
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "output_vcf",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/appending_queries_VCF.sh",
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  }
+}
