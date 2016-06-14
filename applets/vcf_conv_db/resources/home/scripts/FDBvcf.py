@@ -1,112 +1,99 @@
 ###############################################
-##SCRIPT BY  :  Ow Jack Ling
+##SCRIPT BY  :  Ow Jack Ling, Yifei Men
 ##CREATED    :  14 Jun 2016
 ##INPUT      :
 ##DESCRIPTION :
-##ASSUMPTION : 1. Allele frequency(AF) fixed in the sub 2nd column of 8th field 
-##D_VERSION    :  0.0.1
+##ASSUMPTION :
+##D_VERSION    :  0.0.
 ##P_VERSION: 1.0.0
 ##############################################
 
 import csv
 import sqlite3
+import sys
+import vcf
 
 d1 = '\t'               # delimiter 1
-#infile = 'GATK2011_Q50_Hg19_216samples_indel_filtered_merged.vcf'
 outfile = 'SummaryFile.txt'
 
-def extractAF( info):
-    ## Extract AF in column 7
-    Asub = info.split(';')
-    AF = Asub[1].split('=')
+"""Extract AF field from INFO"""
+def extractAF(info):
+    return info['AF'] if 'AF' in info else []
 
-    return  AF[1].split(',')
+"""Write Chrom, Pos, Ref, Alt, GT to a tsv file"""
+def createNewOutFile(ofile):
+    with open(ofile, 'w') as csvfile:
+        filewriter = csv.writer(csvfile, delimiter='\t',
+                                    quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        filewriter.writerow(['CHROM', 'POS', 'REF', 'ALT', 'AF'])
 
-def createNewOutFile( ofile):
-     ## Write Chrom, Pos, Ref, Alt, GT to a tsv file
-     with open(ofile, 'w') as csvfile:
-            filewriter = csv.writer(csvfile, delimiter='\t',
-                                       quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            filewriter.writerow(['CHROM', 'POS', 'REF', 'ALT', 'AF'])
-
-def insert_sqlite3(con, chr, pos, ref, alt, af):
+"""Insert a single variant/frequency record into
+the sqlite3 database"""
+def insert_sqlite3(con, chrom, pos, ref, alt, af):
     cur = con.cursor()
-
-    sqlstring = "insert into summary values ('"+ chr + "' , " + pos + " , '" + ref  + "' , '" + alt +"', " + af + " )"
-
+    sqlstring = "insert into summary values ('"+ chrom + "' , " + str(pos) + " , '" + ref  + "' , '" + str(alt) +"', " + str(af) + " )"
     cur.execute(sqlstring)
 
+"""Initialize sqlite3 table for storing genotype
+frequencies"""
 def create_table(con):
     cur = con.cursor()
     cur.execute("create table summary(chrom text, pos integer, ref text, alt text, af real)")
 
+"""Print error to stderr"""
+def print_error(hdr, msg):
+    sys.stderr.write("=={hdr}== {msg}\n".format(hdr=hdr, msg=msg))
 
+""" Main function to parse input cohort vcf into a DB file
+and a tsv plain-text file"""
+def parse_file(infile):
+    counter = 0
+    try:
+        vcf_reader = vcf.Reader(open(infile, 'r'))
+        conn = sqlite3.connect(r'SummaryDB.db')
+        create_table(conn)
+        createNewOutFile(outfile)
 
-def parse_file( infile):
+        # Iterate through records in vcf file
+        for record in vcf_reader:
+            counter += 1
+            if not (counter % 5000):
+                print_error("INFO", "Processing record {i}".format(i=counter))
+            afs = extractAF(record.INFO)
+            alleles = record.ALT
 
-  counter = 0            
+            # AF's vcf NUMBER is defined as 'A' in a conformant vcf
+            # A mismatch of count is likely an error, in which case we
+            # report the error and skip the row
+            if len(alleles) != len(afs):
+                print_error("INFO",
+                    "{n_af} AF values found for {n_al} alleles in record {record}".format(
+                    n_af=len(afs), n_al=len(alleles), record=record))
 
-  try:
-    file = open(infile, 'rb')
+            # Write AF of alleles to outfile and DB
+            with open(outfile, 'a') as csvfile:
+                filewriter = csv.writer(csvfile, delimiter='\t',
+                                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-    data = csv.reader(file, delimiter='\t')
+                for (al, af) in zip(alleles, afs):
+                    filewriter.writerow([record.CHROM, record.POS, record.REF, al, af])
+                    insert_sqlite3(conn, record.CHROM, record.POS, record.REF, al, af)
 
-    conn = sqlite3.connect(r'SummaryDB.db')
-	
-    create_table(conn)
-	
-    createNewOutFile(outfile)
+        # Commit the insert
+        conn.commit()
+        # Closing the connection to the database file
+        conn.close()
 
-    # loop each row 
-    for row in data:
+    except IOError:
+        print_error("Error", "There was an error reading file {fn}".format(fn=infile))
+        sys.exit()
 
-      ## start after vcf header & metadata
-      if '#' not in row[0]: 
-
-        ## Extract AF in column 7
-        AFvalues = extractAF(row[7])
-
-        #Check for ',' (alt has multi allele)
-        allele = row[4].split(',')
-        #count = allele.len  + 1
-            
-        #print row[0]+d1+row[1]+d1+row[2]+d1+allele[alleleNo]+d1+AFvalues[alleleNo]
-        #print allele.len
-        for alleleNo in range(0, len(allele)):
-
-          #print row[0]+d1+row[1]+d1+row[3]+d1+allele+d1+AFvalues
-          #if alleleNo > 0:
-          #   print row[0]+d1+row[1]+d1+row[2]+d1+allele[alleleNo]+d1+AFvalues[alleleNo]
-      
-          ## Write Chrom, Pos, Ref, Alt, GT to a tsv file
-          with open(outfile, 'a') as csvfile:
-               filewriter = csv.writer(csvfile, delimiter='\t',
-                                       quotechar='|', quoting=csv.QUOTE_MINIMAL)
-               filewriter.writerow([row[0], row[1], row[3], allele[alleleNo], AFvalues[alleleNo]])
-			 
-	  insert_sqlite3(conn, row[0], row[1], row[3], allele[alleleNo], AFvalues[alleleNo] )
-
-    # Commit the insert 
-    conn.commit()
-	
-    # Closing the connection to the database file
-    conn.close()	  
-	  
-  except IOError:
-         print "There was an error reading file"
-         sys.exit()
-  
-  except sqlite3.Error as er:
-    print 'er:', er.message
-
+    except sqlite3.Error as er:
+        print_error("Error", "SQLite3 error: {er}".format(er=er))
 
 if __name__ == '__main__':
-        from sys import argv, exit
-        if len(argv) == 1:
-            print 'Usage: %s <input_file>' % argv[0]
-            print ' e.g. %s aggregate_file.vcf' % argv[0]
-            exit()
-
-        parse_file (argv[1])
-
-        #import_sqllite3
+    if len(sys.argv) == 1:
+        print 'Usage: %s <input_file>' % sys.argv[0]
+        print ' e.g. %s aggregate_file.vcf' % sys.argv[0]
+        sys.exit()
+    parse_file (sys.argv[1])
