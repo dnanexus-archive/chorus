@@ -1,0 +1,70 @@
+{
+  "name": "annotatvcf",
+  "title": "Annotate VCF",
+  "summary": "Query from cohort variant database to annotate vcf",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "vcf",
+      "label": "vcf file",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.vcf"
+      ],
+      "help": "Unannotated variant call Format(VCF)"
+    },
+    {
+      "name": "variantdb",
+      "label": "Variant DB",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.db"
+      ],
+      "help": "Cohort variant database in sqlite3"
+    },
+    {
+      "default": "hg19",
+      "name": "build",
+      "label": "Assembly build",
+      "class": "string",
+      "optional": false,
+      "patterns": [
+        "*"
+      ],
+      "help": "Assembly build of the Human Genome that was used in upstream analysis"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "annotatedfile",
+      "label": "Annotated File",
+      "class": "file",
+      "patterns": [
+        "*"
+      ],
+      "help": ""
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/annotatvcf.sh",
+    "execDepends":
+    [
+      {"name": "pyVCF",
+       "package_manager": "pip"}
+     ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  },
+  "access": {
+      "network": ["*"]
+   }
+}
