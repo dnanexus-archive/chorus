@@ -103,7 +103,7 @@ def parse_file( infile, build):
          conn.close()
          sys.exit()
 
-	 
+""" Query sqlite3 db for the variant from vcf """		 
 def query_db(con, chr, pos, ref, alt):
 
         #conn = sqlite3.connect('SummaryDB.db')
@@ -128,8 +128,8 @@ def query_db(con, chr, pos, ref, alt):
 if __name__ == '__main__':        
         from sys import argv, exit		
         if len(argv) == 1:
-            print 'Usage: %s <input_file>' % argv[0]
-            print ' e.g. %s aggregate_file.vcf' % argv[0]
+            print 'Usage: %s -b <build> -i <input_file>' % argv[0]
+            print ' e.g. %s -b hg38 -i aggregate_file.vcf' % argv[0]
             exit()
 			
         args = {}
