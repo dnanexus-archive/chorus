@@ -48,6 +48,7 @@ def print_error(hdr, msg):
 and a tsv plain-text file"""
 def parse_file(infile):
     counter = 0
+    check = False
     try:
         vcf_reader = vcf.Reader(open(infile, 'r'))
         conn = sqlite3.connect(r'SummaryDB.db')
@@ -62,6 +63,16 @@ def parse_file(infile):
             afs = extractAF(record.INFO)
             alleles = record.ALT
 
+			 ## check for chr in chromosome field
+            if check == False:
+               if record.CHROM.find('chr') == -1:
+                     Prefix = 'chr'
+               else:
+                     Prefix = ''
+               
+               check = True
+            chr = Prefix + record.CHROM
+			
             # AF's vcf NUMBER is defined as 'A' in a conformant vcf
             # A mismatch of count is likely an error, in which case we
             # report the error and skip the row
@@ -76,8 +87,8 @@ def parse_file(infile):
                                          quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
                 for (al, af) in zip(alleles, afs):
-                    filewriter.writerow([record.CHROM, record.POS, record.REF, al, af])
-                    insert_sqlite3(conn, record.CHROM, record.POS, record.REF, al, af)
+                    filewriter.writerow([chr, record.POS, record.REF, al, af])
+                    insert_sqlite3(conn, chr, record.POS, record.REF, al, af)
 
         # Commit the insert
         conn.commit()
@@ -93,7 +104,7 @@ def parse_file(infile):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        print 'Usage: %s <input_file>' % sys.argv[0]
+        print 'Usage: %s  <input_file>' % sys.argv[0]
         print ' e.g. %s aggregate_file.vcf' % sys.argv[0]
         sys.exit()
     parse_file (sys.argv[1])
