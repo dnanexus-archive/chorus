@@ -1,0 +1,117 @@
+{
+  "name": "annotatemeta",
+  "title": "Annotate Metadata",
+  "summary": "Annotate metadata of variant database ",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "db",
+      "label": "SFDB database",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.db"
+      ],
+      "help": "Sqlite database without dataset metadata" 
+    },
+    {
+      "name": "lead_pi",
+      "class": "string",
+      "optional": true,
+      "help": "Lead Investigator/Clinician"
+    },
+    {
+      "name": "lead_pi_contact",
+      "label": "lead_pi_contact",
+      "class": "string",
+      "optional": true,
+      "help": "Lead Investigator/Clinician Contact"
+    },
+    {
+      "name": "DU_name",
+      "label": "data uploader name",
+      "class": "string",
+      "optional": true,
+      "help": "Data Uploader Name"
+    },
+    {
+      "name": "DU_contact",
+      "label": "data uploader contact",
+      "class": "string",
+      "optional": true,
+      "help": "Data Uploader Contact"
+    },
+    {
+      "name": "source",
+      "label": "source",
+      "class": "string",
+      "optional": true,
+      "help": "Source of data"
+    },
+    {
+      "name": "dataset_id",
+      "label": "dataset_id",
+      "class": "string",
+      "optional": true,
+      "help": "Dataset Identifier:(no special characters or spaces, 5 characters or less, e.g. PRISM)"
+    },
+    {
+      "name": "description",
+      "label": "description",
+      "class": "string",
+      "optional": true,
+      "help": "Description: (Are these controls, or patients with a certain disease?)"
+    },
+    {
+      "name": "methodology",
+      "label": "methodology",
+      "class": "string",
+      "optional": true,
+      "help": "Methodology(e.g. targeted sequencing, exome sequencing, what kits, how were variants called. Can be copied from <About the Test> section in your clinical report or a reference to a publication.)."
+    },
+    {
+      "name": "build",
+      "label": "build",
+      "class": "string",
+      "optional": false,
+      "help": "Human build:(human build 37 or 38?)"
+    },
+    {
+      "name": "human_samples_no",
+      "label": "human_samples_no",
+      "class": "string",
+      "optional": true,
+      "help": "Number of human samples"
+    },
+    {
+      "name": "controls",
+      "label": "controls",
+      "class": "string",
+      "optional": true,
+      "help": "Samples used as controls(Yes or No)"
+    }
+  ],
+  "outputSpec": [
+{
+      "name": "SummaryDB",
+      "label": "Summary database",
+      "class": "file",
+      "patterns": [
+        "*.db"
+      ],
+      "help": "Variant database with metadata"
+}
+],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/annotatemeta.sh",
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  }
+}
