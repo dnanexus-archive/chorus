@@ -48,10 +48,11 @@ def print_error(hdr, msg):
     sys.stderr.write("=={hdr}== {msg}\n".format(hdr=hdr, msg=msg))
 
 """ Main function to annotate metadata into a DB file"""
-def annotate_db(p_lead_pi, p_lead_pi_contact, p_DU_name, p_DU_contact, p_source, p_dataset_id, p_description, p_method, p_build, p_human_samples_no, p_controls, p_database):
+def annotate_db(p_lead_pi, p_lead_pi_contact, p_DU_name, p_DU_contact, p_source, p_dataset_id, p_description, p_method, p_build, p_human_samples_no, p_controls):
     counter = 0
     check = False
-    indb = p_database
+    #indb = p_database
+    indb = 'db'
     dbtable = 'cohort_metadata'
 
     try:
@@ -106,4 +107,4 @@ if __name__ == '__main__':
                  args[ "database" ] = p
 
 
-    annotate_db ( args[ "lead_pi" ], args[ "lead_pi_contact" ], args[ "DU_name" ], args["DU_contact"], args["source"], args["dataset_id"], args["description"], args["method"], args[ "build" ], args["human_samples_no"],args["controls"], args[ "database" ]  )
+    annotate_db ( args[ "lead_pi" ], args[ "lead_pi_contact" ], args[ "DU_name" ], args["DU_contact"], args["source"], args["dataset_id"], args["description"], args["method"], args[ "build" ], args["human_samples_no"],args["controls"] )
