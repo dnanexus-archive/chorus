@@ -1,0 +1,59 @@
+{
+  "name": "sfdb_query",
+  "title": "SG Federated Database Query",
+  "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "input_vcf",
+      "label": "Input VCF file",
+      "class": "file",
+      "optional": false
+    },
+    {
+      "name": "output_fn",
+      "label": "Output Filename",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "default": "hg19",
+      "name": "build",
+      "label": "Build of genome assembly",
+      "class": "string",
+      "optional": false,
+      "help": "Assembly build of the Human Genome that was used in upstream analysis"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "annotated_vcf",
+      "label": "Annotated VCF file",
+      "class": "file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/sfdb_query.sh",
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "execDepends":
+    [
+      {"name": "pyVCF",
+       "package_manager": "pip"}
+    ],
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  },
+  "resources": "project-BxQ8xfj0KYgfZVjGfQ27JKxK",
+  "openSource": false,
+  "access": {
+      "network": ["*"]
+  },
+  "authorizedUsers": []
+}
