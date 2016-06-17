@@ -1,0 +1,14 @@
+# Project ID for storing live version of
+# summary DB of genotype frequencies
+db_project: 'project-BxVK4Q8081jfqjyXfxGyQVbV'
+
+# Project ID for archival of previous versions
+# of summary DB of genotype frequencies
+archive_project: 'project-BxVXgF80VjVbZ1QfF0PKzFxk'
+
+# Mapping of mappings of Contributing Agency
+# to data-containing projects
+contributors: {
+    'TTSH': 'project-BxF1qZ80Bz4pz5kjvk7b1Z84',
+    'PRISM': 'project-BxQzjv00g19V9k47K46YK4xb'
+}
