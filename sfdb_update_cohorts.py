@@ -45,19 +45,6 @@ def read_config(config_file):
         config[k] = v
     return config
 
-def get_dx_auth_token():
-    """Parses dx_auth_token from the output of dx env
-    Exits with error message if dx env failed to execute
-    or the environment is not set with an auth token"""
-
-    try:
-        return dxpy.SECURITY_CONTEXT['auth_token']
-
-    except KeyError, e:
-        sys.exit("Could not parse auth_token in dxpy environment, ensure that you have logged in " +
-            "using an API token!\n{0}: {1}".format(e.errno, e.strerror))
-
-
 """ Archive files in the working SFDB project """
 def archive_current_files(config):
 
