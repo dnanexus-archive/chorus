@@ -46,7 +46,7 @@ main() {
             dx-jobutil-report-error "The build specified for the query ($build) differs from the build of the database ($db_build)" AppError
         fi
 
-        python /home/scripts/AnnotateFDB.py -i "$input_vcf_path" -d "$variant_db" -o "$cohort_name.tsv"
+        python /home/scripts/AnnotateFDB.py "$input_vcf_path" "$variant_db" >  "$cohort_name.tsv"
     done
 
     if [ -z "$output_fn" ]; then
