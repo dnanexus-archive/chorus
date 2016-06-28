@@ -9,10 +9,19 @@
 ##############################################
 
 import csv
-import sqlite3
+import argparse
 import sys
-import getopt
 import vcf
+import os
+import collections
+
+def _parse_args():
+    '''Parse the input arguments.'''
+    ap = argparse.ArgumentParser(description='Read input file and append frequency value')
+    ap.add_argument('inputfile', help='The input VCF file')
+    ap.add_argument('querydatabase', help='space separated database query files', nargs='+')
+    return ap.parse_args()
+
 
 """Write Chrom, Pos, Ref, Alt, GT to a tsv file"""
 def createNewOutFile( ofile):
@@ -22,19 +31,28 @@ def createNewOutFile( ofile):
                                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
                filewriter.writerow(['#CHR', 'POSITION', 'REF', 'ALT', 'FDB AF'])
 
+def storedatabase(databasefile):
+    '''Store the frequency of ALT from queried database'''
+    outputdatabase={}
+    fdd=open(databasefile)
+    lines=fdd.readlines()
+    for line in lines:
+        if line and line[0] == '#':
+            continue
 
-""" Query sqlite3 db for the variant from vcf """
-def query_db(con, chr, pos, ref, alt):
+        temp=line.strip().split('\t')
+        outputdatabase['_'.join(map(str,temp[0:4]))]=str(temp[4])
+    return outputdatabase
 
-    cur = con.cursor()
-    sqlstring = "select af from summary where chrom='"+ chr + "' and pos='" + str(pos) + "' and ref='" + ref  + "' and alt='" + str(alt) +"'"
-    cur.execute(sqlstring)
-    id_exists = cur.fetchone()
-
-    if id_exists:
-        return id_exists[0]
+def get_alt_frequency(zipinput_p,alldatabasecontent_p,alldatabase_i_p,ALT_form_p):
+    '''Return frequency of ALT from dict (from queried database)'''
+    if zipinput['CHROM']+'_'+zipinput_p['POS']+'_'+zipinput_p['REF']+'_'+ALT_form_p in alldatabasecontent_p[alldatabase_i_p]:
+        temp_return=alldatabasecontent_p[alldatabase_i_p][zipinput_p['CHROM']+'_'+zipinput_p['POS']+'_'+zipinput_p['REF']+'_'+ALT_form_p]
     else:
-        return '.'
+        temp_return='.'
+    return temp_return
+
+
 
 """Print error to stderr"""
 def print_error(hdr, msg):
@@ -42,18 +60,28 @@ def print_error(hdr, msg):
 
 
 """ Main function to parse input cohort vcf and annotate into a Queried file"""
-def parse_file(infile, dbfile, outfile):
+def parse_file(infile, alldatabase):
 
     counter = 0
     check = False
+    outfile = 'vcf.txt'
+
+    ####################
+    ## store database ##
+    ####################
+    alldatabasecontent={}
+    for alldatabase_i in alldatabase:
+        #print alldatabase_i
+        tempcontent=storedatabase(alldatabase_i)
+        alldatabasecontent=tempcontent
+
 
     try:
         vcf_reader = vcf.Reader(open(infile,'r'))
 
-        conn = sqlite3.connect(dbfile)
-        curMeta = conn.cursor()
         createNewOutFile(outfile)
-
+        print '\t'.join(['#CHR', 'POSITION', 'REF', 'ALT', 'FDB AF'])
+        
         # loop each row
         for record in vcf_reader:
 
@@ -78,44 +106,29 @@ def parse_file(infile, dbfile, outfile):
             filewriter = csv.writer(csvfile, delimiter='\t',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-
             for al in allele:
-                dbAF = query_db(conn, chr, record.POS, record.REF, al)
-                filewriter.writerow([chr, record.POS, record.REF, al, dbAF])
-
-        # Closing the connection to the database file
-        conn.close()
-
+                str1 = str(chr) + "_" + str(record.POS) + "_" +   str(record.REF) + "_" + str(al) 
+                if str1 in alldatabasecontent:
+                     dbAF = alldatabasecontent[str1]
+                else:
+                     dbAF = '.'
+               
+                print '\t'.join(map(str,[chr,record.POS,record.REF,al,dbAF]))
+                #filewriter.writerow([chr, record.POS, record.REF, al, dbAF])
 
     except IOError:
          print_error("Error", "There was an error reading file {fn}".format(fn=infile))
          sys.exit()
 
-    except sqlite3.Error as er:
-         print_error("Error", "SQLite3 error: {er}".format(er=er))
-         conn.close()
-         sys.exit()
 
 
 if __name__ == '__main__':
-    from sys import argv, exit
-    if len(argv) == 1:
-        print 'Usage: %s -i <input_file> -d <sqlite db file> -o <output_file>' % argv[0]
-        print ' e.g. %s -i aggregate_file.vcf -d frequency.db -o frequencies.txt' % argv[0]
-        exit()
 
-    # TODO: Suggest move to argparse for more modern argument parsing
-    # and safeguarding against unspecified non-optional parameters
-    args = {}
 
-    opts, extraparams = getopt.getopt(sys.argv[1:], "i:d:o:")
+    ##################
+    ## arg handling ##
+    ##################
+    args = _parse_args()
+    alldatabase=args.querydatabase
 
-    for o,p in opts:
-        if o == '-i':
-            args["input"] = p
-        elif o == '-d':
-            args["db"] = p
-        elif o == '-o':
-            args["output"] = p
-
-    parse_file (args["input"], args["db"], args["output"])
+    parse_file (args.inputfile, alldatabase)
