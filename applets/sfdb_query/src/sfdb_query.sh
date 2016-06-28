@@ -23,7 +23,7 @@ main() {
         cohort_name="${cohort%/}"
         echo "Processing cohort: ${cohort%/}"
 
-        db_file=$(dx find data --name summaryDB.db --path $DX_ASSETS_ID:/$cohort --brief)
+        db_file=$(dx find data --name summaryfile.txt --path $DX_ASSETS_ID:/$cohort --brief)
 
         if [ -z $db_file ]; then
             dx-jobutil-report-error "Could not find summaryDB.db file for cohort $cohort_name" AppError
