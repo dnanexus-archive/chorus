@@ -13,7 +13,7 @@ main() {
     fi
 
     cohorts=$(dx ls $DX_ASSETS_ID --folder)
-
+    summaryfile_name="summaryfile.txt"
     # We don't quote $cohorts to enable split by whitespace
     # Cohort names CANNOT contain whitespace, or unexpected
     # behavior may result
@@ -23,17 +23,17 @@ main() {
         cohort_name="${cohort%/}"
         echo "Processing cohort: ${cohort%/}"
 
-        db_file=$(dx find data --name summaryfile.txt --path $DX_ASSETS_ID:/$cohort --brief)
+        db_file=$(dx find data --name $summaryfile_name --path $DX_ASSETS_ID:/$cohort --brief)
 
         if [ -z $db_file ]; then
-            dx-jobutil-report-error "Could not find summaryDB.db file for cohort $cohort_name" AppError
+            dx-jobutil-report-error "Could not find $summaryfile_name file for cohort $cohort_name" AppError
         fi
 
-        if [ -f "$cohort_name.db" ]; then
+        if [ -f "$cohort_name.txt" ]; then
             dx-jobutil-report-error "The cohort name $cohort_name is not unique" AppError
         fi
 
-        variant_db="$cohort_name.db"
+        variant_db="$cohort_name.txt"
         dx download "$db_file" -o "$variant_db"
 
         db_build=$(dx describe "$db_file" --json | jq -r .properties.build)
