@@ -63,9 +63,10 @@ def archive_current_files(config):
 
     timestamp_folder = time.strftime("/%Y-%m/%d-%H%M%S")
 
-    archive_proj.new_folder(timestamp_folder, parents=True)
     folder_list = working_proj.list_folder()['folders']
     object_list = working_proj.list_folder()['objects']
+
+    archive_proj.new_folder(timestamp_folder, parents=True)
     working_proj.clone(config['archive_project'], destination=timestamp_folder, folders=folder_list, objects=object_list)
 
 # Consolidates all files/folders from contributors into working SFDB project.
@@ -84,11 +85,13 @@ def update_working_project(config):
         except dxpy.exceptions.DXError, e:
             print_error("Error",
                     "Cannot access contributor project given ({0}). {1}".format(project, str(e)))
+            
         contributor_folder = ("/%s" %contributor)    
-        working_proj.remove_folder(contributor_folder, recurse=True, force=True)
-        working_proj.new_folder(contributor_folder, parents=True)
         folder_list = contributor_proj.list_folder()['folders']
         object_list = contributor_proj.list_folder()['objects']
+
+        working_proj.remove_folder(contributor_folder, recurse=True, force=True)
+        working_proj.new_folder(contributor_folder, parents=True)
         contributor_proj.clone(config['working_project'], destination=contributor_folder, folders=folder_list, objects=object_list)
 
 """ Main entry point """
