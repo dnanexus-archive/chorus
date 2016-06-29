@@ -46,6 +46,8 @@ def read_config(config_file):
     return config
 
 """ Archive files in the working SFDB project """
+# Error handling: (1) Access errors, (2) Incorrect number of summaryfile.txt 
+# Deletes all working SFDB project files after archiving
 def archive_current_files(config):
 
     try:
@@ -61,38 +63,37 @@ def archive_current_files(config):
                     "Cannot access archival project given ({0}). {1}".format(project, str(e)))
 
 
-    timestamp_folder = time.strftime("/%Y-%m/%d-%H%M%S")
+    timestamp_folder = time.strftime("/%Y-%m/%d-%H-%M-%S")
 
     folder_list = working_proj.list_folder()['folders']
-    object_list = working_proj.list_folder()['objects']
-
     archive_proj.new_folder(timestamp_folder, parents=True)
-    working_proj.clone(config['archive_project'], destination=timestamp_folder, folders=folder_list, objects=object_list)
+    working_proj.clone(config['archive_project'], destination=timestamp_folder, folders=folder_list)
 
-# Consolidates all files/folders from contributors into working SFDB project.
-# Deletes all working SFDB project files before the consolidation step.
+# Consolidates all summaryfile.txt from contributors into working SFDB project.
+# Error handling: (1) Access errors, (2) Incorrect number of summaryfile.txt
 def update_working_project(config):
-
-    try:
-        working_proj = dxpy.bindings.DXProject(config['working_project'])
-    except dxpy.exceptions.DXError, e:
-        print_error("Error",
-                    "Cannot access working project given ({0}). {1}".format(project, str(e)))
-
+    working_proj = dxpy.bindings.DXProject(config['working_project'])
+    folder_list = working_proj.list_folder()['folders']
+    object_list = working_proj.list_folder()['objects']
+    # Remove all folders and files in the working SFDB project
+    for folder in folder_list:
+        working_proj.remove_folder(folder, recurse=True, force=True)
+    for file in object_list:
+        working_proj.remove_object(file, force=True)
+    # Consolidate summaryfile.txt files from all contributors
     for contributor in config['contributors']:
         try:
             contributor_proj = dxpy.bindings.DXProject(config['contributors'][contributor])
         except dxpy.exceptions.DXError, e:
-            print_error("Error",
+            print_error("Error 1: ",
                     "Cannot access contributor project given ({0}). {1}".format(project, str(e)))
-            
-        contributor_folder = ("/%s" %contributor)    
-        folder_list = contributor_proj.list_folder()['folders']
-        object_list = contributor_proj.list_folder()['objects']
 
-        working_proj.remove_folder(contributor_folder, recurse=True, force=True)
-        working_proj.new_folder(contributor_folder, parents=True)
-        contributor_proj.clone(config['working_project'], destination=contributor_folder, folders=folder_list, objects=object_list)
+        folder_list = contributor_proj.list_folder()['folders']
+        for folder in folder_list:
+            contributor_folder =("/%s" %contributor + "_%s" %folder[1:])
+            working_proj.new_folder(contributor_folder, parents=True)
+            summaryfile = dxpy.bindings.search.find_one_data_object(classname="file", name="summaryfile.txt", project=contributor_proj.get_id(), folder=folder, zero_ok=False, more_ok=False)
+            contributor_proj.clone(config['working_project'], destination=contributor_folder, objects=[summaryfile.get('id')])
 
 """ Main entry point """
 def main():
