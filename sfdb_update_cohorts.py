@@ -4,6 +4,9 @@ import time
 import yaml
 import sys
 
+# Note: this archiving script will not copy summaryfile.txt files from the working SFDB project if
+# they have the same file IDs as pre-existing files in the archive SFDB project.
+
 CONFIG_DEFAULT = {
     'archive_project': 'project-BxVXgF80VjVbZ1QfF0PKzFxk',
     'contributors': {},
@@ -36,6 +39,7 @@ def print_error(hdr, msg):
 
 """ Parse the config YAML file """
 def read_config(config_file):
+    print "Reading config YAML file"
     config = {}
     user_config = yaml.load(config_file)
     for k in CONFIG_DEFAULT:
@@ -62,12 +66,14 @@ def archive_current_files(config):
         print_error("Error",
                     "Cannot access archival project given ({0}). {1}".format(project, str(e)))
 
-
     timestamp_folder = time.strftime("/%Y-%m/%d-%H-%M-%S")
 
     folder_list = working_proj.list_folder()['folders']
     archive_proj.new_folder(timestamp_folder, parents=True)
+    print "Creating new folder in archive project: %s" %timestamp_folder[1:]
     working_proj.clone(config['archive_project'], destination=timestamp_folder, folders=folder_list)
+    for folder in folder_list:
+        print "     Copied folder from working project into archive project: %s" %folder[1:]
 
 # Consolidates all summaryfile.txt from contributors into working SFDB project.
 # Error handling: (1) Access errors, (2) Incorrect number of summaryfile.txt
@@ -82,6 +88,8 @@ def update_working_project(config):
         working_proj.remove_object(file, force=True)
     # Consolidate summaryfile.txt files from all contributors
     for contributor in config['contributors']:
+        print "Accessing files in contributor project: %s" %contributor
+
         try:
             contributor_proj = dxpy.bindings.DXProject(config['contributors'][contributor])
         except dxpy.exceptions.DXError, e:
@@ -92,8 +100,10 @@ def update_working_project(config):
         for folder in folder_list:
             contributor_folder =("/%s" %contributor + "_%s" %folder[1:])
             working_proj.new_folder(contributor_folder, parents=True)
+            print "     Creating new folder in working project: %s" %contributor_folder[1:]
             summaryfile = dxpy.bindings.search.find_one_data_object(classname="file", name="summaryfile.txt", project=contributor_proj.get_id(), folder=folder, zero_ok=False, more_ok=False)
             contributor_proj.clone(config['working_project'], destination=contributor_folder, objects=[summaryfile.get('id')])
+            print "     Copied summaryfile.txt from contributor project %s" %contributor + " into working project: %s" %contributor_folder[1:]
 
 """ Main entry point """
 def main():
