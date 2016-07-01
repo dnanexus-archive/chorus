@@ -43,7 +43,7 @@ def print_error(hdr, msg):
     if hdr == "Error":
         exit(1)
     if hdr == "Warning":
-        global numWarnings 
+        global numWarnings
         numWarnings += 1
 
 """ Parse the config YAML file """
@@ -59,7 +59,7 @@ def read_config(config_file):
     return config
 
 """ Return the chosen DXProject (choice between working, archive, or contributor) """
-def access_project(config, project_type, contributor=None): 
+def access_project(config, project_type, contributor=None):
 # Project type: "working", "archive", or "contributor"
 # Optional field contributor used only if the project type is "contributor"
 
@@ -95,7 +95,7 @@ def access_project(config, project_type, contributor=None):
                     "Cannot access project type given (%s)." %project_type)
 
 """ Return list of data object type (choice between folders or files) in working project """
-def find_proj_data_objects(config, project, project_type, data_object_type, contributor=None): 
+def find_proj_data_objects(config, project, project_type, data_object_type, contributor=None):
 # Project type: "working" or "contributor"; Data object type: "folder" or "file"
 
     if project_type == "contributor" and data_object_type == "folder":
@@ -157,7 +157,7 @@ def remove_working_proj_data_object(config, working_proj, data_object_type, data
 
 """ Create new folder in project """
 def create_new_folder(config, project, project_type, folder_name):
-# Destination project type: "working" or "archive"; Project: DXProject object; 
+# Destination project type: "working" or "archive"; Project: DXProject object;
 
     if project_type == "archive":
         global timestamp_folder
@@ -215,6 +215,7 @@ def find_and_clone_summaryfile(config, contributor_proj, contributor, folder, co
     print "         Found one summaryfile.txt in contributor project (%s" %contributor + ") and folder (%s)" %folder
     clone_files(config, contributor_proj, "contributor", contributor_folder, object_list=summaryfile, contributor=contributor)
 
+""" Print summary message on succesful exit """
 def print_exit_message():
     print "\n============== SFDB Update Successful =============="
     if numWarnings > 0:
@@ -239,6 +240,8 @@ def archive_current_files(config):
     # Clone all folders and files from the working project into the new folder in archive project
     clone_files(config, working_proj, "working", timestamp_folder, object_list=object_list, folder_list=folder_list)
 
+""" Update working project by removing existing folders and files and cloning
+appropriate files from contributor projects """
 def update_working_project(config):
     # Access working project
     working_proj = access_project(config, "working")
@@ -257,18 +260,18 @@ def update_working_project(config):
         # Consolidate summaryfile.txt files from all contributors
         contributor_proj = access_project(config, "contributor", contributor=contributor)
         folder_list = find_proj_data_objects(config, contributor_proj, "contributor", "folder", contributor=contributor)
-        global numContributors 
+        global numContributors
         numContributors += 1
 
         for folder in folder_list:
             # Create new folder for each cohort of each contributor
             contributor_folder =("/%s" %contributor + "_%s" %folder.lstrip('/').replace(" ", "")) # Strips whitespace
             create_new_folder(config, working_proj, "working", contributor_folder)
-            global numCohorts 
+            global numCohorts
             numCohorts += 1
 
             # Clone the summaryfile.txt from the contributor cohort into the new folder in working project
-            summaryfile = find_and_clone_summaryfile(config, contributor_proj, contributor, folder, contributor_folder)
+            find_and_clone_summaryfile(config, contributor_proj, contributor, folder, contributor_folder)
 
 """ Main entry point """
 def main():
