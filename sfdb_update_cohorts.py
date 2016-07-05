@@ -58,161 +58,79 @@ def read_config(config_file):
     return config
 
 """ Return the chosen DXProject (choice between working, archive, or contributor) """
-def access_project(config, project_type, contributor=None): 
+def access_project(project_id, project_name): 
 # Project type: "working", "archive", or "contributor"
 # Optional field contributor used only if the project type is "contributor"
-
-    if project_type == "working":
-        try:
-            working_proj = dxpy.bindings.DXProject(config['working_project'])
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access working project given (%s" %config['working_project'] + "). %s" %e)
-        print "Found working project (%s)" %config['working_project']
-        return working_proj
-
-    elif project_type == "archive":
-        try:
-            archive_proj = dxpy.bindings.DXProject(config['archive_project'])
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access archival project given (%s" %config['archive_project'] + "). %s"%e)
-        print "Found archive project (%s)" %config['archive_project']
-        return archive_proj
-
-    elif project_type == "contributor":
-        try:
-            contributor_proj = dxpy.bindings.DXProject(config['contributors'][contributor])
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access contributor project given (%s)" %contributor + ". %s" %e)
-        print "Found contributor project (%s)" %contributor
-        return contributor_proj
-
-    else:
+    try:
+        accessed_proj = dxpy.bindings.DXProject(project_id)
+        print "Found %s project" %project_name
+        return accessed_proj
+    except dxpy.exceptions.DXError, e:
         print_error("Error",
-                    "Cannot access project type given (%s)." %project_type)
+                    "Cannot access %s project. %s" %(project_name, e))
+
 
 """ Return list of data object type (choice between folders or files) in working project """
-def find_proj_data_objects(config, project, project_type, data_object_type, contributor=None): 
+def find_proj_data_objects(project, project_name, data_object_type): 
 # Project type: "working" or "contributor"; Data object type: "folder" or "file"
-
-    if project_type == "contributor" and data_object_type == "folder":
-        contributor_proj = project
-        try:
-            folder_list = contributor_proj.list_folder()['folders']
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access list of folders in contributor project (%s" %contributor +"). %s" %e)
-        print "     Found folders (%s)" %folder_list + " in contributor project %s" %contributor
-        return folder_list
-
-    working_proj = project
-    if data_object_type == "folder":
-        try:
-            folder_list = working_proj.list_folder()['folders']
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access list of folders in working project (%s" %config['working_project'] +"). %s" %e)
-        print "     Found folders (%s)" %folder_list + " in working project %s" %config['working_project']
-        return folder_list
-
-    elif data_object_type == "file":
-        try:
-            object_list = working_proj.list_folder()['objects']
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot access list of objects in working project (%s" %config['working_project'] +"). %s" %e)
-        print "     Found objects (%s)" %object_list + " in working project %s" %config['working_project']
-        return object_list
-
-    else:
+    try:
+        obj_list = project.list_folder()[data_object_type]
+        print "     Found folders (%s)" %obj_list + " in %s project" %project_name
+        return obj_list
+    except dxpy.exceptions.DXError, e:
         print_error("Error",
-                    "Cannot access data object type given (%s)." %data_object_type)
+                    "Cannot access list of %s in %s project. %s" %(data_object_type, project_name, e))
 
 """ Remove one specified instance of data object type from working project (choice between folders or files) """
-def remove_working_proj_data_object(config, working_proj, data_object_type, data_object):
+def remove_data_object(project_id, project, project_name, data_object_type, data_object):
     if data_object_type == "folder":
-        folder = data_object
         try:
-            working_proj.remove_folder(folder, recurse=True, force=True)
+            project.remove_folder(data_object, recurse=True, force=True)
+            print "     Removed %s (%s) in %s project (%s)" %(data_object_type, data_object, project_name, project_id)
         except dxpy.exceptions.DXError, e:
             print_error("Error",
-                        "Cannot remove folder (%s" %folder + "). %s" %e + "in working project %s." %config['working_project'])
-        print "     Removed folder (%s)" %folder + " in working project (%s)" %config['working_project']
+                        "Cannot remove %s (%s) in %s project (%s). %s" %(data_object_type, data_object, project_name, project_id, e))
 
-    elif data_object_type == "file":
-        file = data_object
+    else: # data_object_type == "file"
         try:
-            working_proj.remove_object(file, force=True)
+            project.remove_object(data_object, force=True)
+            print "     Removed %s (%s) in %s project (%s)" %(data_object_type, data_object, project_name, project_id)
         except dxpy.exceptions.DXError, e:
             print_error("Error",
-                        "Cannot remove object (%s" %file + "). %s" %e + "in working project %s." %config['working_project'])
-        print "     Removed object (%s)" %file + " in working project (%s)" %config['working_project']
-
-    else:
-        print_error("Error",
-                    "Cannot remove data object type given (%s)." %data_object)
+                        "Cannot remove %s (%s) in %s project (%s). %s" %(data_object_type, data_object, project_name, project_id, e))
 
 """ Create new folder in project """
-def create_new_folder(config, project, project_type, folder_name):
-# Destination project type: "working" or "archive"; Project: DXProject object; 
-
-    if project_type == "archive":
-        global timestamp_folder
-        timestamp_folder = folder_name
-        archive_proj = project
-        try:
-            archive_proj.new_folder(timestamp_folder, parents=True)
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot create archive project new folder named (%s" %timestamp_folder + "). %s" %e)
-        print "     Creating new folder (%s" %timestamp_folder + ") in archive project (%s)" %config['archive_project']
-
-    elif project_type == "working":
-        contributor_folder = folder_name
-        working_proj = project
-        try:
-            working_proj.new_folder(contributor_folder, parents=True)
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot create working project new folder named (%s" %contributor_folder + "). %s" %e)
-        print "     Creating new folder (%s" %contributor_folder + ") in working project (%s)" %config['working_project']
+def create_new_folder(project_id, project, project_name, folder_name):
+    try:
+        project.new_folder(folder_name, parents=True)
+        print "     Creating new folder (%s) in %s project (%s)" %(folder_name, project_name, project_id)
+    except dxpy.exceptions.DXError, e:
+        print_error("Error",
+                    "Cannot create %s project new folder named (%s). %s" %(project_name, project, e))
 
 """ Clone provided list of files (optional: and folders) into specified project """
-# Project type: "working" or "archive"; Originating project: DXProject object; Destination folder name: Existing folder
-def clone_files(config, project, project_type, folder_name, object_list, folder_list=None, contributor=None):
-    if project_type == "working":
-        working_proj = project
-        timestamp_folder = folder_name
-        try:
-            working_proj.clone(config['archive_project'], destination=timestamp_folder, folders=folder_list, objects=object_list)
-        except dxpy.exceptions.DXError, e:
+def clone_files(project_id, project, project_type, folder_name, object_list, folder_list=None):
+    try:
+        if folder_list is None:
+            project.clone(project_id, destination=folder_name, objects=object_list)
+            print "         Cloned files (%s) from %s project into %s" %(object_list, project_type, folder_name)
+        else:
+            project.clone(project_id, destination=folder_name, folders=folder_list, objects=object_list)
+            print "         Cloned folders (%s) and files (%s) from %s project into %s" %(folder_list, object_list, project_type, folder_name)
+    except dxpy.exceptions.DXError, e:
             print_error("Error",
-                        "Cannot clone folders (%s" %folder_list + ") to destination (%s" %timestamp_folder + "). %s" %e)
-        print "         Cloned folders (%s)" %folder_list + " and files (%s)" %object_list + " from working project (%s" %config['working_project'] + ") into archive project folder (%s)" %timestamp_folder
-
-    elif project_type == "contributor":
-        contributor_proj = project
-        contributor_folder = folder_name
-        try:
-            contributor_proj.clone(config['working_project'], destination=contributor_folder, objects=[object_list.get('id')])
-        except dxpy.exceptions.DXError, e:
-            print_error("Error",
-                        "Cannot clone summaryfile.txt from contributor project (%s)" %contributor + " to destination (%s)." %contributor_folder[1:])
-        print "         Cloned summaryfile.txt from contributor project (%s)" %contributor + " into working project (%s)" %contributor_folder
+                        "Cannot clone  folders (%s) and files (%s) from %s project into %s. %s" %(folder_list, object_list, project_type, folder_name,e))
 
 """ Finds and returns the summaryfile object in specified folder """
-def find_and_clone_summaryfile(config, contributor_proj, contributor, folder, contributor_folder):
+def find_and_clone_summaryfile(project_id, project, project_name, folder, contributor_folder):
     try:
-        summaryfile = dxpy.bindings.search.find_one_data_object(classname="file", name="summaryfile.txt", project=contributor_proj.get_id(), folder=folder, zero_ok=False, more_ok=False)
+        summaryfile = dxpy.bindings.search.find_one_data_object(classname="file", name="summaryfile.txt", project=project.get_id(), folder=folder, zero_ok=False, more_ok=False)
+        print "         Found one summaryfile.txt in contributor project (%s) and folder (%s)" %(project_name, folder)
+        clone_files(project_id, project, project_name, contributor_folder, [summaryfile['id']])
     except dxpy.exceptions.DXSearchError, e:
         print_error("Warning",
-                    "Contributor project (%s" %contributor + ") has a folder (%s) with zero or multiple summaryfile.txt files" %folder + "). %s" %e)
+                    "Contributor project (%s) has a folder (%s) with zero or multiple summaryfile.txt files). %s" %(project_name, folder, e))
         return
-    # If summaryfile is found.
-    print "         Found one summaryfile.txt in contributor project (%s" %contributor + ") and folder (%s)" %folder
-    clone_files(config, contributor_proj, "contributor", contributor_folder, object_list=summaryfile, contributor=contributor)
 
 def print_exit_message(archive_folder):
     print "\n============== SFDB Update Successful =============="
@@ -224,51 +142,51 @@ def print_exit_message(archive_folder):
 """ Archive files in the working SFDB project """
 def archive_current_files(config):
     # Access working and archive projects
-    working_proj = access_project(config, "working")
-    archive_proj = access_project(config, "archive")
+    working_proj = access_project(config['working_project'], "working")
+    archive_proj = access_project(config['archive_project'], "archive")
 
     # Find list of all folders and files in working project
-    folder_list = find_proj_data_objects(config, working_proj, "working", "folder")
-    object_list = find_proj_data_objects(config, working_proj, "working", "file")
+    folder_list = find_proj_data_objects(working_proj, "working", "folders")
+    object_list = find_proj_data_objects(working_proj, "working", "objects")
 
     # Create new timestamp-labeled folder in archive project
     timestamp_folder = time.strftime("/%Y-%m/%d-%H-%M-%S")
-    create_new_folder(config, archive_proj, "archive", timestamp_folder)
+    create_new_folder(config['archive_project'], archive_proj, "archive", timestamp_folder)
 
     # Clone all folders and files from the working project into the new folder in archive project
-    clone_files(config, working_proj, "working", timestamp_folder, object_list=object_list, folder_list=folder_list)
+    clone_files(config['archive_project'], working_proj, "working", timestamp_folder, object_list, folder_list)
     return timestamp_folder
 
 def update_working_project(config):
     # Access working project
-    working_proj = access_project(config, "working")
+    working_proj = access_project(config['working_project'], "working")
 
     # Find list of all folders and files in working project
-    folder_list = find_proj_data_objects(config, working_proj, "working", "folder")
-    object_list = find_proj_data_objects(config, working_proj, "working", "file")
+    folder_list = find_proj_data_objects(working_proj, "working", "folders")
+    object_list = find_proj_data_objects(working_proj, "working", "objects")
 
     # Remove all folders and files in the working SFDB project
     for folder in folder_list:
-        remove_working_proj_data_object(config, working_proj, "folder", folder)
+        remove_data_object(config['working_project'], working_proj, "working", "folder", folder)
     for file in object_list:
-        remove_working_proj_data_object(config, working_proj, "file", file)
+        remove_data_object(config['working_project'], working_proj, "working", "file", file)
 
     for contributor in config['contributors']:
         # Consolidate summaryfile.txt files from all contributors
-        contributor_proj = access_project(config, "contributor", contributor=contributor)
-        folder_list = find_proj_data_objects(config, contributor_proj, "contributor", "folder", contributor=contributor)
+        contributor_proj = access_project(config['contributors'][contributor], contributor)
+        folder_list = find_proj_data_objects(contributor_proj, contributor, "folders")
         global numContributors 
         numContributors += 1
 
         for folder in folder_list:
             # Create new folder for each cohort of each contributor
             contributor_folder =("/%s" %contributor + "_%s" %folder.lstrip('/').replace(" ", "")) # Strips whitespace
-            create_new_folder(config, working_proj, "working", contributor_folder)
+            create_new_folder(config['working_project'], working_proj, "working", contributor_folder)
             global numCohorts 
             numCohorts += 1
 
             # Clone the summaryfile.txt from the contributor cohort into the new folder in working project
-            summaryfile = find_and_clone_summaryfile(config, contributor_proj, contributor, folder, contributor_folder)
+            summaryfile = find_and_clone_summaryfile(config['working_project'], contributor_proj, contributor, folder, contributor_folder)
 
 """ Main entry point """
 def main():
