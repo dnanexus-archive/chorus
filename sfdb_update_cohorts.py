@@ -15,8 +15,6 @@ CONFIG_DEFAULT = {
 
 # Global variables
 numWarnings = 0
-numContributors = 0
-numCohorts = 0
 
 """ Parse command line arguments """
 def parse_args():
@@ -123,20 +121,22 @@ def clone_files(project_id, project, project_type, folder_name, object_list, fol
 
 """ Finds and returns the summaryfile object in specified folder """
 def find_and_clone_summaryfile(project_id, project, project_name, folder, contributor_folder):
-    try:
-        summaryfile = dxpy.bindings.search.find_one_data_object(classname="file", name="summaryfile.txt", project=project.get_id(), folder=folder, zero_ok=False, more_ok=False)
-        print "         Found one summaryfile.txt in contributor project (%s) and folder (%s)" %(project_name, folder)
+    numSummaryFilesInCohort = 0
+    summaryfileList = dxpy.bindings.search.find_data_objects(classname="file", name="summaryfile.txt", project=project.get_id(), folder=folder)
+    for summaryfile in summaryfileList: 
         clone_files(project_id, project, project_name, contributor_folder, [summaryfile['id']])
-    except dxpy.exceptions.DXSearchError, e:
+        numSummaryFilesInCohort += 1
+    print "         Found %d summaryfile.txt file(s) in contributor project (%s) and folder (%s)" %(numSummaryFilesInCohort, project_name, folder)
+    if numSummaryFilesInCohort == 0:
         print_error("Warning",
-                    "Contributor project (%s) has a folder (%s) with zero or multiple summaryfile.txt files). %s" %(project_name, folder, e))
-        return
+                    "Contributor project (%s) has a folder (%s) with zero summaryfile.txt files). Expected greater than 1 file, but found none." %(project_name, folder))
+    return numSummaryFilesInCohort
 
-def print_exit_message(archive_folder):
+def print_exit_message(archive_folder, numCohorts, numContributors, numSummaryFiles):
     print "\n============== SFDB Update Successful =============="
     if numWarnings > 0:
         print "%d WARNINGS DETECTED: REFER TO LOGS FOR WARNING MESSAGE\n" %numWarnings
-    print "Working project has been updated with %d cohort summaryfile.txt files" %numCohorts + " from %d contributor projects" %numContributors
+    print "Working project has been updated with %d summaryfile.txt files in %d cohorts from %d contributor projects" %(numSummaryFiles, numCohorts, numContributors)
     print "New archive folder (%s) has been created to store previous version of the working project.\n" %archive_folder.lstrip('/')
 
 """ Archive files in the working SFDB project """
@@ -157,7 +157,7 @@ def archive_current_files(config):
     clone_files(config['archive_project'], working_proj, "working", timestamp_folder, object_list, folder_list)
     return timestamp_folder
 
-def update_working_project(config):
+def update_working_project(config, archive_folder):
     # Access working project
     working_proj = access_project(config['working_project'], "working")
 
@@ -171,30 +171,32 @@ def update_working_project(config):
     for file in object_list:
         remove_data_object(config['working_project'], working_proj, "working", "file", file)
 
+    numContributors = 0
+    numCohorts = 0
+    numSummaryFiles = 0
     for contributor in config['contributors']:
         # Consolidate summaryfile.txt files from all contributors
         contributor_proj = access_project(config['contributors'][contributor], contributor)
         folder_list = find_proj_data_objects(contributor_proj, contributor, "folders")
-        global numContributors 
         numContributors += 1
 
         for folder in folder_list:
             # Create new folder for each cohort of each contributor
             contributor_folder =("/%s" %contributor + "_%s" %folder.lstrip('/').replace(" ", "")) # Strips whitespace
             create_new_folder(config['working_project'], working_proj, "working", contributor_folder)
-            global numCohorts 
             numCohorts += 1
 
-            # Clone the summaryfile.txt from the contributor cohort into the new folder in working project
-            summaryfile = find_and_clone_summaryfile(config['working_project'], contributor_proj, contributor, folder, contributor_folder)
+            # Clone the summaryfile.txt files from the contributor cohort into the new folder in working project
+            numSummaryFiles += find_and_clone_summaryfile(config['working_project'], contributor_proj, contributor, folder, contributor_folder)
+
+    print_exit_message(archive_folder, numCohorts, numContributors, numSummaryFiles)
 
 """ Main entry point """
 def main():
     args = parse_args()
     config = read_config(args.config)
     archive_folder = archive_current_files(config)
-    update_working_project(config)
-    print_exit_message(archive_folder)
+    update_working_project(config, archive_folder)
 
 if __name__ == "__main__":
     main()
