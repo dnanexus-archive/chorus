@@ -19,7 +19,7 @@ def storedatabase(databasefile):
     outputdatabase=collections.defaultdict(int)
     fdd=open(databasefile)
     lines=fdd.readlines()
-    for line in lines[:10]:
+    for line in lines[:]:
         temp=line.strip().split()
         outputdatabase['_'.join(map(str,temp[0:4]))]=str(temp[4])
     return outputdatabase
