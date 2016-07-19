@@ -1,5 +1,5 @@
 {
-  "name": "sfdb_query",
+  "name": "sgfd_query",
   "title": "SG Federated Database Query",
   "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
   "dxapi": "1.0.0",
@@ -21,10 +21,11 @@
     {
       "default": "hg19",
       "name": "build",
-      "label": "Build of genome assembly",
+      "label": "Genome build for input file",
       "class": "string",
       "optional": false,
-      "help": "Assembly build of the Human Genome that was used in upstream analysis"
+      "choices": ["hg19", "hg38"],
+      "help": "Assembly build of the Human Genome used in the input VCF (Note: hg19=GrCh37, hg38=GrCh38)"
     }
   ],
   "outputSpec": [
@@ -48,12 +49,20 @@
        "package_manager": "pip"}
     ],
     "distribution": "Ubuntu",
-    "release": "12.04"
+    "release": "14.04"
   },
-  "resources": "project-BxQ8xfj0KYgfZVjGfQ27JKxK",
+  "resources": "project-By6Zj080gV6QP2PXp88kYp65",
   "openSource": false,
   "access": {
       "network": ["*"]
   },
-  "authorizedUsers": []
+  "developers": [
+    "user-ymen",
+    "user-owjl",
+    "user-pauline_ng"
+  ],
+  "authorizedUsers": [
+    "user-s_mauer_stroh",
+    "user-v_limviphuvadh"
+  ]
 }

@@ -2,6 +2,17 @@
 
 set -e -x -o pipefail
 
+print_summary() {
+    declare -a annotated=("${!1}")
+    declare -a unannotated=("${!2}")
+    echo "================SGFD Summary=================="
+    echo "Annotated query against the following cohorts:"
+    printf '%s\n' "${annotated[@]}"
+    echo "Following cohorts were not annotated:"
+    printf '%s\n' "${unannotated[@]}"
+    echo "==============End of SGFD Summary============="
+}
+
 main() {
 
     dx-download-all-inputs
@@ -14,6 +25,10 @@ main() {
 
     cohorts=$(dx ls $DX_ASSETS_ID --folder)
     summaryfile_name="summaryfile.txt"
+
+    annotated_cohorts=()
+    unannotated_cohorts=()
+
     # We don't quote $cohorts to enable split by whitespace
     # Cohort names CANNOT contain whitespace, or unexpected
     # behavior may result
@@ -23,10 +38,13 @@ main() {
         cohort_name="${cohort%/}"
         echo "Processing cohort: ${cohort%/}"
 
-        db_file=$(dx find data --name $summaryfile_name --path $DX_ASSETS_ID:/$cohort --brief)
+        db_file=$(dx find data --name $summaryfile_name --property build=$build --path $DX_ASSETS_ID:/$cohort --brief)
 
+        # Could not find the corresponding build summary_file.txt
         if [ -z $db_file ]; then
-            dx-jobutil-report-error "Could not find $summaryfile_name file for cohort $cohort_name" AppError
+            echo "Could not find $summaryfile_name file for cohort $cohort_name for build $build"
+            unannotated_cohorts+=("$cohort_name")
+            continue
         fi
 
         if [ -f "$cohort_name.txt" ]; then
@@ -36,17 +54,9 @@ main() {
         variant_db="$cohort_name.txt"
         dx download "$db_file" -o "$variant_db"
 
-        db_build=$(dx describe "$db_file" --json | jq -r .properties.build)
-
-        if [ -z $db_build ]; then
-            dx-jobutil-report-error "Build not specified in the db for $cohort_name" AppError
-        fi
-
-        if [[ "$build" != "$db_build" ]]; then
-            dx-jobutil-report-error "The build specified for the query ($build) differs from the build of the database ($db_build)" AppError
-        fi
-
         python /home/scripts/AnnotateFDB.py "$input_vcf_path" "$variant_db" >  "$cohort_name.tsv"
+        annotated_cohorts+=("$cohort_name")
+
     done
 
     if [ -z "$output_fn" ]; then
@@ -57,6 +67,7 @@ main() {
 
     python /home/scripts/VCF_info_appending.py "$input_vcf_path" *.tsv > "out/annotated_vcf/${output_fn}.annotated.vcf"
 
-    dx-upload-all-outputs
+    print_summary "${annotated_vcf[@]}" "${unannotated_cohorts[@]}"
 
+    dx-upload-all-outputs
 }
