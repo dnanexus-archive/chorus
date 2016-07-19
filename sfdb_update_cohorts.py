@@ -40,7 +40,7 @@ def print_error(hdr, msg):
     if hdr == "Error":
         exit(1)
     if hdr == "Warning":
-        global numWarnings 
+        global numWarnings
         numWarnings += 1
 
 """ Parse the config YAML file """
@@ -56,7 +56,7 @@ def read_config(config_file):
     return config
 
 """ Return the chosen DXProject (choice between working, archive, or contributor) """
-def access_project(project_id, project_name): 
+def access_project(project_id, project_name):
 # Project type: "working", "archive", or "contributor"
 # Optional field contributor used only if the project type is "contributor"
     try:
@@ -69,7 +69,7 @@ def access_project(project_id, project_name):
 
 
 """ Return list of data object type (choice between folders or files) in working project """
-def find_proj_data_objects(project, project_name, data_object_type): 
+def find_proj_data_objects(project, project_name, data_object_type):
 # Project type: "working" or "contributor"; Data object type: "folder" or "file"
     try:
         obj_list = project.list_folder()[data_object_type]
@@ -123,7 +123,7 @@ def clone_files(project_id, project, project_type, folder_name, object_list, fol
 def find_and_clone_summaryfile(project_id, project, project_name, folder, contributor_folder):
     numSummaryFilesInCohort = 0
     summaryfileList = dxpy.bindings.search.find_data_objects(classname="file", name="summaryfile.txt", project=project.get_id(), folder=folder)
-    for summaryfile in summaryfileList: 
+    for summaryfile in summaryfileList:
         clone_files(project_id, project, project_name, contributor_folder, [summaryfile['id']])
         numSummaryFilesInCohort += 1
     print "         Found %d summaryfile.txt file(s) in contributor project (%s) and folder (%s)" %(numSummaryFilesInCohort, project_name, folder)
@@ -182,7 +182,7 @@ def update_working_project(config, archive_folder):
 
         for folder in folder_list:
             # Create new folder for each cohort of each contributor
-            contributor_folder =("/%s" %contributor + "_%s" %folder.lstrip('/').replace(" ", "")) # Strips whitespace
+            contributor_folder =("/%s" %folder.lstrip('/').replace(" ", "") + "_%s" %contributor) # Strips whitespace
             create_new_folder(config['working_project'], working_proj, "working", contributor_folder)
             numCohorts += 1
 
