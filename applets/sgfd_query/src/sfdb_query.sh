@@ -67,7 +67,7 @@ main() {
 
     python /home/scripts/VCF_info_appending.py "$input_vcf_path" *.tsv > "out/annotated_vcf/${output_fn}.annotated.vcf"
 
-    print_summary "${annotated_vcf[@]}" "${unannotated_cohorts[@]}"
+    print_summary annotated_vcf[@] unannotated_cohorts[@]
 
     dx-upload-all-outputs
 }
