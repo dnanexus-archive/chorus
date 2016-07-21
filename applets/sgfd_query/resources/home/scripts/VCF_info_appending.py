@@ -69,6 +69,8 @@ if __name__ == '__main__':
                 ## pair header with actual content
                 zipinput=dict(zip(header,linestrip.split('\t')))
                 currentcontent=zipinput['INFO']
+                if currentcontent == ".":
+                    currentcontent = ""
                 for alldatabase_i in alldatabasecontent.keys():
                      # zero content INFO
                     if len(currentcontent)==0:

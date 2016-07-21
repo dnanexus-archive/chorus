@@ -7,9 +7,9 @@ print_summary() {
     declare -a unannotated=("${!2}")
     echo "================SGFD Summary=================="
     echo "Annotated query against the following cohorts:"
-    printf '%s\n' "${annotated[@]}"
+    echo "${annotated[@]}"
     echo "Following cohorts were not annotated:"
-    printf '%s\n' "${unannotated[@]}"
+    echo "${unannotated[@]}"
     echo "==============End of SGFD Summary============="
 }
 
@@ -26,8 +26,8 @@ main() {
     cohorts=$(dx ls $DX_ASSETS_ID --folder)
     summaryfile_name="summaryfile.txt"
 
-    annotated_cohorts=()
-    unannotated_cohorts=()
+    local annotated_cohorts=()
+    local unannotated_cohorts=()
 
     # We don't quote $cohorts to enable split by whitespace
     # Cohort names CANNOT contain whitespace, or unexpected
@@ -67,7 +67,7 @@ main() {
 
     python /home/scripts/VCF_info_appending.py "$input_vcf_path" *.tsv > "out/annotated_vcf/${output_fn}.annotated.vcf"
 
-    print_summary annotated_vcf[@] unannotated_cohorts[@]
+    print_summary annotated_cohorts[@] unannotated_cohorts[@]
 
     dx-upload-all-outputs
 }
