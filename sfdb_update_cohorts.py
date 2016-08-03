@@ -116,7 +116,7 @@ def clone_files(project_id, project, project_type, folder_name, object_list, fol
             project.clone(project_id, destination=folder_name, folders=folder_list, objects=object_list)
             print "         Cloned folders (%s) and files (%s) from %s project into %s" %(folder_list, object_list, project_type, folder_name)
     except dxpy.exceptions.DXError, e:
-            print_error("Error",
+            print_error("Error", 
                         "Cannot clone  folders (%s) and files (%s) from %s project into %s. %s" %(folder_list, object_list, project_type, folder_name,e))
 
 """ Finds and returns the summaryfile object in specified folder """
