@@ -30,7 +30,7 @@
 # 3. This script also takes into account haploid calls (including but not limited to sex chromosomes where only one allele exists per chromosome).
 # 4. This script parses VCF records with multiple alternate alleles and produces one line of allelic frequency output for each distinct alternate allele.
 # 5. This script accepts both VCF files with and without 'chr'-labeled chromosome numbers and produces an output file with 'chr'-labeled chromosome numbers, 
-#	 assuming that the labeling convention is consistent within each VCF file.
+#    assuming that the labeling convention is consistent within each VCF file.
 
 
 import vcf
