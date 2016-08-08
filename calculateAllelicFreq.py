@@ -30,7 +30,7 @@
 # 3. This script also takes into account haploid calls (including but not limited to sex chromosomes where only one allele exists per chromosome).
 # 4. This script parses VCF records with multiple alternate alleles and produces one line of allelic frequency output for each distinct alternate allele.
 # 5. This script accepts both VCF files with and without 'chr'-labeled chromosome numbers and produces an output file with 'chr'-labeled chromosome numbers, 
-#    assuming that the labeling convention is consistent within each VCF file.
+#	 assuming that the labeling convention is consistent within each VCF file.
 
 
 import vcf
@@ -38,6 +38,7 @@ import sys
 import argparse
 import dxpy
 import re
+from collections import defaultdict
 
 
 """ Parse command line arguments """
@@ -73,7 +74,7 @@ def populate_output_file(ofile, vcf_file, count_missing_alleles):
 		text_file = open(ofile, "w")
 		text_file.write("# CHROM\tPOS\tREF\tALT\tALLELIC_FREQ\n")
 	except IOError:
-		print_error("Error", "There was an error opening or writing to file {fn}".format(fn=ofile))
+		print_error("Error", "There was an error opening or writing to file {fn}".format(fn=text_file))
 		sys.exit()
 
 	try:
@@ -87,7 +88,6 @@ def populate_output_file(ofile, vcf_file, count_missing_alleles):
 		record = next(vcf_reader)
 		if record.CHROM.find('chr') == -1:
 			name_has_chr = False
-		
 		write_allelic_freq(record, name_has_chr, count_missing_alleles, text_file)
 
 		for record in vcf_reader:
@@ -120,32 +120,32 @@ def add_to_dict(allele_count_dict, allele):
 """Calculate and write allelic frequency of all alternate alleles in a record to output file"""
 def write_allelic_freq(record, name_has_chr, count_missing_alleles, text_file):
 	num_total_alleles = 0
-	allele_count_dict = {}
+	allele_count_dict = defaultdict(int)
 	chromosome_name = process_chrom(record.CHROM, name_has_chr)
 
 	is_haploid = False # Denotes the ploidy level of the allele
 	for sample in record.samples:
-		if not sample.gt_bases == None:
+		if sample.gt_bases:
 			num_total_alleles += 2
 			split_bases = re.split(r'[|/]*', sample.gt_bases) # Works for VCFs using '|' and '/' as delimiters
 			for allele in split_bases:
-				allele_count_dict = add_to_dict(allele_count_dict, allele)
+				allele_count_dict[allele] += 1
 			if len(split_bases) == 1: # If there is only 1 allele, the variant call is haploid
 				is_haploid = True
-		else: # To-do: Take care of haploid calls that have to take into account missing alleles; what does it look like?
+		else:
 			if count_missing_alleles:
 				num_total_alleles += 2
 
 	if is_haploid: # Accounts for haploid calls
 		num_total_alleles /= 2
 
-	if (len(allele_count_dict) > 0 and record.REF in allele_count_dict): # Removes reference alleles from the dictionary.
+	if record.REF in allele_count_dict: # Removes reference alleles from the dictionary.
 		del allele_count_dict[record.REF]
 	# else - if allele_count_dict has 1 or more alleles and none of them are the REF allele, continue. 
 
 	try:
-		for alt_allele in allele_count_dict:
-			allelic_freq = (allele_count_dict[alt_allele]/(float(num_total_alleles)))
+		for alt_allele, allele_count in allele_count_dict.items():
+			allelic_freq = allele_count/(float(num_total_alleles))
 			text_file.write(" %s\t%s\t%s\t%s\t%f\n" %(chromosome_name, record.POS, record.REF, alt_allele, allelic_freq))
 	except:
 		print_error("Error", "There was an error writing to file {fn}".format(fn=ofile))
@@ -157,4 +157,4 @@ def main():
 	print "\n============== %s Successfully Populated ==============\n" %args.output
 
 if __name__ == '__main__':
-	main() 
+	main()
