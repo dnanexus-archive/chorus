@@ -32,7 +32,6 @@
 # 5. This script accepts both VCF files with and without 'chr'-labeled chromosome numbers and produces an output file with 'chr'-labeled chromosome numbers, 
 #	 assuming that the labeling convention is consistent within each VCF file.
 
-
 import vcf
 import sys
 import argparse
@@ -109,13 +108,6 @@ def process_chrom(chrom, name_has_chr):
 		prefix = 'chr'
 		chrom = prefix + chrom
 	return chrom
-
-def add_to_dict(allele_count_dict, allele):
-	if allele in allele_count_dict:
-		allele_count_dict[allele] += 1
-	else:
-		allele_count_dict[allele] = 1
-	return allele_count_dict
 
 """Calculate and write allelic frequency of all alternate alleles in a record to output file"""
 def write_allelic_freq(record, name_has_chr, count_missing_alleles, text_file):
