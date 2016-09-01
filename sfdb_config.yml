@@ -7,9 +7,13 @@ working_project: 'project-By6Zj080gV6QP2PXp88kYp65'
 # of summary DB of genotype frequencies
 archive_project: 'project-BxVXgF80VjVbZ1QfF0PKzFxk'
 
-# Mapping of mappings of Contributing Agency
+# Mapping of Contributing Agency
 # to data-containing projects
 contributors: {
     'NUHS': 'project-By6Yg9j0xx7P12342QVF09Yp',
-    'PRISM': 'project-By6YgQj01Yv7GykB5QV19p21'
+    'PRISM': 'project-By6YgQj01Yv7GykB5QV19p21',
+    'SGH': 'project-ByZGKX80xQG6B2ZJvjbxPBKq',
+    'TTSH': 'project-By6Yg5Q089xv5X887QV1v3zX',
+    'NUS': 'project-ByV8kV00Xqb8Fz5Y1Vz9y59Z',
+    'GIS': 'project-Bz2696Q0j4zP7B0pXJ19b17k'
 }
