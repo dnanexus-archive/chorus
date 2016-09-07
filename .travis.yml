@@ -1,0 +1,18 @@
+language: python
+python:
+  - 2.7
+
+script:
+# deploy dx-toolkit
+- wget https://wiki.dnanexus.com/images/files/dx-toolkit-current-ubuntu-12.04-amd64.tar.gz
+- tar zxf dx-toolkit-current-ubuntu-12.04-amd64.tar.gz
+- source dx-toolkit/environment
+- dx select project-Bz84jg80pyJ3F9Y0853zBjb9
+- GIT_REVISION="$(git describe --long --tags --dirty --always)"
+- folder_name="$(date +/%Y-%m/%d-%H%M%S)_${GIT_REVISION}/"
+- dx mkdir -p $folder_name
+- dx run sgfd_query -iinput_vcf=project-Bz84jg80pyJ3F9Y0853zBjb9:file-Bz89FYj019Vg4BZVyG343Y3p --folder=$folder_name --yes --brief --wait --watch
+
+env:
+  global:
+  - secure: "Vow5vkH7Z6npwYvFOrDN1PuQFBPTvvWyqID8MFPrCibo0JepMfEWvFaT4npSuh4+bXvCOWrEmPUtXtG1nHWCYq9bJdQ0Jix0nSOysvo8YCxDayzYR+bbuL/yv6TkRAlgqdOGF77/PJkHdWHaUNJUAg/5wCHCDHmEJmvpPwd+l3JW+Q2xXhJ5XQkWYTA3tYrXUhexmz2GWB8LVNaXdLJ9b8GZA/0xbUpZsWwB9pomf0E+hjvh1HR5Xxnw1YGTCanr1DEHoFsGjqDC+xIJHsb5xHUfGFtccZuxE2rSYVIjebwuPNh3DBcEF0PnmIm/gAjLnxj5J2HXPWURQY/z0j8TSgGD8w3Htrrz+I3jSZW1lNDqXOUNayneAAqGpEoCO82HzT32mVbRATm+jpBUaTr6zUxvbbKKmbKxyvc44eGbntAnqQgVuOkUbK7q5fMBBQEgyznsfb4yx0BmY+Aa2hQPDnimAHIP6Mw2WeN4qnAQUgmll2bt9SQ8Dji4mqJE5iDtqic7iRJevZLRnZ1DgTvaOcPPie7MDVFHJaV7LSujmZL7BGIl2icFLebhyQJKTJVHuakYgQeWXaKQgSOCTDkdRU+5kBagdX8zC7EFs1LtQB4kU+2ek24fhaMV7n8NpM8fv+xuiQ/qsLnc4+tBZt14KVLpxDTGMzKbBIC31Wfowu8="
