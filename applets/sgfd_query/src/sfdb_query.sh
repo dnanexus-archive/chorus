@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -x -o pipefail
+set -e -o pipefail
 
 print_summary() {
     declare -a annotated=("${!1}")
