@@ -3,7 +3,7 @@
   "title": "SG Federated Database Query",
   "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
   "dxapi": "1.0.0",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "categories": [],
   "inputSpec": [
     {
@@ -63,7 +63,6 @@
     "user-bhannigan"
   ],
   "authorizedUsers": [
-    "user-sgfd_admin",
     "org-sgfd_beta"
   ]
 }
