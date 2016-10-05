@@ -1,0 +1,68 @@
+{
+  "name": "chorus_query",
+  "title": "CHORUS Query",
+  "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
+  "dxapi": "1.0.0",
+  "version": "1.6.1",
+  "categories": [],
+  "inputSpec": [
+    {
+      "name": "input_vcf",
+      "label": "Input VCF file",
+      "class": "file",
+      "optional": false
+    },
+    {
+      "name": "output_fn",
+      "label": "Output Filename",
+      "class": "string",
+      "optional": true
+    },
+    {
+      "default": "hg19",
+      "name": "build",
+      "label": "Genome build for input file",
+      "class": "string",
+      "optional": false,
+      "choices": ["hg19", "hg38"],
+      "help": "Assembly build of the Human Genome used in the input VCF (Note: hg19=GrCh37, hg38=GrCh38)"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "annotated_vcf",
+      "label": "Annotated VCF file",
+      "class": "file"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/chorus_query.sh",
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "execDepends":
+    [
+      {"name": "pyVCF",
+       "package_manager": "pip"}
+    ],
+    "distribution": "Ubuntu",
+    "release": "14.04"
+  },
+  "resources": "project-By6Zj080gV6QP2PXp88kYp65",
+  "openSource": false,
+  "access": {
+      "network": ["*"]
+  },
+  "developers": [
+    "user-ymen",
+    "user-owjl",
+    "user-pauline_ng",
+    "user-bhannigan"
+  ],
+  "authorizedUsers": [
+    "org-chorus_beta"
+  ]
+}
