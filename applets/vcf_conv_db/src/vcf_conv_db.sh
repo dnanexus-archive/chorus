@@ -40,7 +40,7 @@ main() {
     # reported in the job_error.json file, then the failure reason
     # will be AppInternalError with a generic error message.
 
-    python /home/scripts/FDBvcf.py vcf
+    python /home/scripts/CHORUSvcf.py vcf
 
    file_id=`dx upload SummaryFile.txt -o "summaryfile.txt" --brief`
    dx-jobutil-add-output "summaryfile" "$file_id"
