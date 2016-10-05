@@ -4,8 +4,8 @@ import time
 import yaml
 import sys
 
-# Note: this archiving script will not copy summaryfile.txt files from the working SFDB project if
-# they have the same file IDs as pre-existing files in the archive SFDB project.
+# Note: this archiving script will not copy summaryfile.txt files from the working CHORUS project if
+# they have the same file IDs as pre-existing files in the archive CHORUS project.
 
 CONFIG_DEFAULT = {
     'archive_project': 'project-BxVXgF80VjVbZ1QfF0PKzFxk',
@@ -20,7 +20,7 @@ numWarnings = 0
 def parse_args():
 
     parser = argparse.ArgumentParser(description='This script syncs genotype frequency databases' +
-                                                 ' from data contributors of the SG Federated Database' +
+                                                 ' from data contributors of the CHORUS' +
                                                  ' project to a common admin project.',
                                      formatter_class=argparse.RawTextHelpFormatter)
 
@@ -133,13 +133,13 @@ def find_and_clone_summaryfile(project_id, project, project_name, folder, contri
     return numSummaryFilesInCohort
 
 def print_exit_message(archive_folder, numCohorts, numContributors, numSummaryFiles):
-    print "\n============== SFDB Update Successful =============="
+    print "\n============== CHORUS Update Successful =============="
     if numWarnings > 0:
         print "%d WARNINGS DETECTED: REFER TO LOGS FOR WARNING MESSAGE\n" %numWarnings
     print "Working project has been updated with %d summaryfile.txt files in %d cohorts from %d contributor projects" %(numSummaryFiles, numCohorts, numContributors)
     print "New archive folder (%s) has been created to store previous version of the working project.\n" %archive_folder.lstrip('/')
 
-""" Archive files in the working SFDB project """
+""" Archive files in the working CHORUS project """
 def archive_current_files(config):
     # Access working and archive projects
     working_proj = access_project(config['working_project'], "working")
@@ -165,7 +165,7 @@ def update_working_project(config, archive_folder):
     folder_list = find_proj_data_objects(working_proj, "working", "folders")
     object_list = find_proj_data_objects(working_proj, "working", "objects")
 
-    # Remove all folders and files in the working SFDB project
+    # Remove all folders and files in the working CHORUS project
     for folder in folder_list:
         remove_data_object(config['working_project'], working_proj, "working", "folder", folder)
     for file in object_list:
