@@ -10,7 +10,7 @@ print_summary() {
     echo "${annotated[@]}"
     echo "Following cohorts were not annotated:"
     echo "${unannotated[@]}"
-    echo "==============CHORUS of SGFD Summary============="
+    echo "==============End of CHORUS Summary============="
 }
 
 main() {
