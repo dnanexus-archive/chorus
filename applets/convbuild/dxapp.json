@@ -1,0 +1,62 @@
+{
+  "name": "convbuild",
+  "title": "Convert Build",
+  "summary": "Convert genome coordinates or annotation files between genome assemblies",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "bedfile",
+      "label": "bed+3 file",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.txt"
+      ],
+      "help": "A Frequency table or bed+3 file (chrom, start, end, etc) "
+    },
+	{
+	  "default": "19to38",
+      "name": "frToAssembly",
+      "label": "Conversion Assembly",
+      "class": "string",
+      "optional": false,
+      "patterns": [
+        "hg19"
+      ],
+      "help": "From and To Assembly"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "summaryfile",
+      "label": "Summary File",
+      "help": "A federated database summary file with allele frequency for the cohort.",
+      "class": "file",
+      "patterns": ["*.txt"]
+    }
+],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/convbuild.sh",
+    "execDepends":
+    [
+      {"name": "numpy",
+       "package_manager": "pip"},
+      {"name": "bx-python",
+       "package_manager": "pip"},
+      {"name": "crossmap",
+       "package_manager": "pip"}
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  },
+  "access": {
+      "network": ["*"]
+  }
+}

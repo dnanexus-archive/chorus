@@ -1,0 +1,47 @@
+{
+  "name": "frq_conv_db",
+  "title": "FRQ convert DB",
+  "summary": "Extract AF from cohort-level freq. table into a database format",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "inputSpec": [
+    {
+      "name": "frq",
+      "label": "Cohort Level frequency table  file",
+      "class": "file",
+      "optional": false,
+      "patterns": [
+        "*.txt"
+      ],
+      "help": "A Frequency table file containing variants"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "summaryfile",
+      "label": "Summary File",
+      "help": "A federated database summary file with allele frequency for the cohort.",
+      "class": "file",
+      "patterns": ["*.txt"]
+    }
+],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/frq_conv_db.sh",
+    "execDepends":
+    [
+      {"name": "pyVCF",
+       "package_manager": "pip"}
+    ],
+    "systemRequirements": {
+      "*": {
+        "instanceType": "mem1_ssd1_x4"
+      }
+    },
+    "distribution": "Ubuntu",
+    "release": "12.04"
+  },
+  "access": {
+      "network": ["*"]
+  }
+}

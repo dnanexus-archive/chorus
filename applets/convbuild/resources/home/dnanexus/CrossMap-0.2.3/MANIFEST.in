@@ -1,0 +1,13 @@
+include MANIFEST.in
+include COPYING
+include INSTALL
+include KNOWN_BUGS
+include README.rst
+
+include distribute_setup.py
+recursive-include lib *.pyx
+recursive-include lib *.pxd
+recursive-include lib *.py
+
+include data/*
+include doc/*
