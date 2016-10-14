@@ -12,8 +12,6 @@ script:
 - folder_name="$(date +/%Y-%m/%d-%H%M%S)_${GIT_REVISION}/"
 - dx mkdir -p $folder_name
 - dx run chorus_query -iinput_vcf=project-Bz84jg80pyJ3F9Y0853zBjb9:file-Bz89FYj019Vg4BZVyG343Y3p --folder=$folder_name --yes --brief --wait --watch
-- dx run chorus_query -iinput_vcf=project-Bz84jg80pyJ3F9Y0853zBjb9:file-F001Z9Q0pyJFp626jjKB5FgP --folder=$folder_name --yes --brief --wait --watch
-- dx run chorus_query -iinput_vcf=project-Bz84jg80pyJ3F9Y0853zBjb9:file-F001Z480pyJ4V4kXZJPGgjF7 --folder=$folder_name --yes --brief --wait --watch
 
 env:
   global:
