@@ -3,7 +3,7 @@
   "title": "CHORUS Query",
   "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
   "dxapi": "1.0.0",
-  "version": "1.6.1",
+  "version": "1.0.0",
   "categories": [],
   "inputSpec": [
     {
@@ -60,7 +60,9 @@
     "user-ymen",
     "user-owjl",
     "user-pauline_ng",
-    "user-bhannigan"
+    "user-bhannigan",
+    "user-szarate",
+    "user-yhwang"
   ],
   "authorizedUsers": [
     "org-chorus_beta"
