@@ -3,7 +3,7 @@
   "title": "CHORUS Query",
   "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
   "dxapi": "1.0.0",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "categories": [],
   "inputSpec": [
     {
@@ -53,6 +53,9 @@
   },
   "resources": "project-By6Zj080gV6QP2PXp88kYp65",
   "openSource": false,
+  "details": {
+    "whatsNew": "* 1.0.1: Added violation check for the input file (input_vcf)."
+  },
   "access": {
       "network": ["*"]
   },

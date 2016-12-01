@@ -18,9 +18,53 @@ main() {
     dx-download-all-inputs
 
     if [[ "$DX_RESOURCES_ID" != "" ]]; then
-      DX_ASSETS_ID="$DX_RESOURCES_ID"
+      DX_ASSETS_ID="$DX_RESOURCES_ID";
     else
-      DX_ASSETS_ID="$DX_PROJECT_CONTEXT_ID"
+      DX_ASSETS_ID="$DX_PROJECT_CONTEXT_ID";
+    fi
+
+    #
+    # Check if the input_vcf file is suspecious
+    # Quit the job if the query VCF contains variants are continuous (when the median of the loci gap are <=10bp apart from each other) 
+    #
+    cat $input_vcf_path | vcf-sort > ${input_vcf_prefix}_sorted.vcf
+
+    distribution_output="/home/dnanexus/${input_vcf_prefix}.txt"
+
+    vcf_stats=($(awk -v output_fn=$distribution_output '
+      BEGIN {
+        rownum=0; lessthantennum=0; prechr="NA";sum=0
+      } 
+      ($0 !~ /^\#/){if ($1==prechr) {
+        diff = $2-prepos;
+        print diff >> output_fn
+        if (diff <= 10) lessthantennum+=1};
+        prechr=$1; prepos=$2; rownum+=1; sum+=diff
+      }
+      END {
+        print lessthantennum,lessthantennum/rownum,sum/rownum
+      }
+      ' "${input_vcf_prefix}_sorted.vcf" ))
+
+    lessthantennum=${vcf_stats[0]}
+    continuous_precentage=${vcf_stats[1]}
+    continuous_mean=${vcf_stats[2]}
+    #echo $lessthantennum
+    #echo $continuous_precentage
+    #echo $continuous_mean
+    #cat /home/dnanexus/${input_vcf_prefix}.txt
+
+    gap_median=$(cat /home/dnanexus/${input_vcf_prefix}.txt | sort -k1,1n |
+    awk '{ count[NR] = $1;}
+     END {
+     if (NR % 2){
+       print count[(NR + 1) / 2];
+     } else { print (count[(NR / 2)] + count[(NR / 2) + 1]) / 2.0; }
+    }' )
+    #echo $gap_median
+  
+    if [[ $(echo "${gap_median} <= 10" | bc -l ) -eq 1 ]]; then
+	    echo "Terminated job because suspicious VCF file ${input_vcf_name} detected. Please contact CHORUS administrators (or mailto: owjl@gis.a-star.edu.sg) if you have any questions."; exit 1;
     fi
 
     cohorts=$(dx ls $DX_ASSETS_ID --folder)
