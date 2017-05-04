@@ -1,22 +1,25 @@
 {
   "name": "chorus_query",
   "title": "CHORUS Query",
-  "summary": "This public-facing app is responsible for receiving a vcf file, querying multiple cohort databases in a federated way, and annotating genotype frequencies of cohorts to the original input vcf/",
+  "summary": "Queries multiple cohort databases in a federated way and annotates cohort genotype frequencies in the input VCF",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "categories": [],
   "inputSpec": [
     {
       "name": "input_vcf",
       "label": "Input VCF file",
       "class": "file",
-      "optional": false
+      "patterns": ["*.vcf"],
+      "optional": false,
+      "help": "VCF file to be queried."
     },
     {
       "name": "output_fn",
-      "label": "Output Filename",
+      "label": "Output filename",
       "class": "string",
-      "optional": true
+      "optional": true,
+      "help": "(Optional) The name of the output VCF (default is name of input VCF with `_annotated` appended."
     },
     {
       "default": "hg19",
@@ -25,36 +28,36 @@
       "class": "string",
       "optional": false,
       "choices": ["hg19", "hg38"],
-      "help": "Assembly build of the Human Genome used in the input VCF (Note: hg19=GrCh37, hg38=GrCh38)"
+      "help": "Assembly build of the Human Genome used in the input VCF (Note: hg19=GrCh37, hg38=GrCh38)."
     }
   ],
   "outputSpec": [
     {
       "name": "annotated_vcf",
       "label": "Annotated VCF file",
-      "class": "file"
+      "class": "file",
+      "help": "The input VCF file, annotated with CHORUS cohort information."
     }
   ],
   "runSpec": {
-    "interpreter": "bash",
     "file": "src/chorus_query.sh",
+    "timeoutPolicy": {
+      "*": { "hours": 24 }
+    },
     "systemRequirements": {
       "*": {
         "instanceType": "mem1_ssd1_x4"
       }
     },
-    "execDepends":
-    [
-      {"name": "pyVCF",
-       "package_manager": "pip"}
-    ],
-    "distribution": "Ubuntu",
-    "release": "14.04"
+    "assetDepends": [{ "id": "record-F45bf9Q0yK5FbbyZ20fpxp7F" }],
+    "release": "14.04",
+    "interpreter": "bash",
+    "distribution": "Ubuntu"
   },
   "resources": "project-By6Zj080gV6QP2PXp88kYp65",
   "openSource": false,
   "details": {
-    "whatsNew": "* 1.0.1: Added violation check for the input file (input_vcf)."
+    "whatsNew": "* 1.0.2: Critical bug fix, asset creation, and documentation improvements.\n* 1.0.1: Added violation check for the input file (input_vcf)."
   },
   "access": {
       "network": ["*"]
@@ -62,7 +65,6 @@
   "developers": [
     "user-owjl",
     "user-pauline_ng",
-    "user-bhannigan",
     "user-szarate",
     "user-yhwang"
   ],

@@ -14,7 +14,6 @@ print_summary() {
 }
 
 main() {
-
     dx-download-all-inputs
 
     if [[ "$DX_RESOURCES_ID" != "" ]]; then
@@ -23,8 +22,7 @@ main() {
       DX_ASSETS_ID="$DX_PROJECT_CONTEXT_ID";
     fi
 
-    #
-    # Check if the input_vcf file is suspecious
+    # Check if the input_vcf file is suspicious
     # Quit the job if the query VCF contains variants are continuous (when the median of the loci gap are <=10bp apart from each other) 
     #
     cat $input_vcf_path | vcf-sort > ${input_vcf_prefix}_sorted.vcf
@@ -49,10 +47,6 @@ main() {
     lessthantennum=${vcf_stats[0]}
     continuous_precentage=${vcf_stats[1]}
     continuous_mean=${vcf_stats[2]}
-    #echo $lessthantennum
-    #echo $continuous_precentage
-    #echo $continuous_mean
-    #cat /home/dnanexus/${input_vcf_prefix}.txt
 
     gap_median=$(cat /home/dnanexus/${input_vcf_prefix}.txt | sort -k1,1n |
     awk '{ count[NR] = $1;}
@@ -61,10 +55,9 @@ main() {
        print count[(NR + 1) / 2];
      } else { print (count[(NR / 2)] + count[(NR / 2) + 1]) / 2.0; }
     }' )
-    #echo $gap_median
   
     if [[ $(echo "${gap_median} <= 10" | bc -l ) -eq 1 ]]; then
-	    echo "Terminated job because suspicious VCF file ${input_vcf_name} detected. Please contact CHORUS administrators (or mailto: owjl@gis.a-star.edu.sg) if you have any questions."; exit 1;
+        echo "Terminated job because suspicious VCF file ${input_vcf_name} detected. Please contact CHORUS administrators (owjl@gis.a-star.edu.sg) if you have any questions."; exit 1;
     fi
 
     cohorts=$(dx ls $DX_ASSETS_ID --folder)
@@ -77,33 +70,34 @@ main() {
     # Cohort names CANNOT contain whitespace, or unexpected
     # behavior may result
     for cohort in $cohorts; do
-
+        # Running on control cohorts ONLY
+        if [[ $cohort == CTR* ]]; then
         # Remove trailing / in folder name
-        cohort_name="${cohort%/}"
-        echo "Processing cohort: ${cohort%/}"
+            cohort_name="${cohort%/}"
+            echo "Processing cohort: ${cohort%/}"
 
-        db_file=$(dx find data --name $summaryfile_name --property build=$build --path $DX_ASSETS_ID:/$cohort --brief)
+            db_file=$(dx find data --name $summaryfile_name --property build=$build --path $DX_ASSETS_ID:/$cohort --brief)
 
-        # Could not find the corresponding build summary_file.txt
-        if [ -z $db_file ]; then
-            echo "Could not find $summaryfile_name file for cohort $cohort_name for build $build"
-            unannotated_cohorts+=("$cohort_name")
-            continue
+            # Could not find the corresponding build summary_file.txt
+            if [[ -z $db_file ]]; then
+                echo "Could not find $summaryfile_name file for cohort $cohort_name for build $build"
+                unannotated_cohorts+=("$cohort_name")
+                continue
+            fi
+
+            if [[ -f "$cohort_name.txt" ]]; then
+                dx-jobutil-report-error "The cohort name $cohort_name is not unique" AppError
+            fi
+
+            variant_db="$cohort_name.txt"
+            dx download "$db_file" -o "$variant_db"
+
+            python /home/scripts/AnnotateCHORUS.py "$input_vcf_path" "$variant_db" >  "$cohort_name.tsv"
+            annotated_cohorts+=("$cohort_name")
         fi
-
-        if [ -f "$cohort_name.txt" ]; then
-            dx-jobutil-report-error "The cohort name $cohort_name is not unique" AppError
-        fi
-
-        variant_db="$cohort_name.txt"
-        dx download "$db_file" -o "$variant_db"
-
-        python /home/scripts/AnnotateCHORUS.py "$input_vcf_path" "$variant_db" >  "$cohort_name.tsv"
-        annotated_cohorts+=("$cohort_name")
-
     done
 
-    if [ -z "$output_fn" ]; then
+    if [[ -z "$output_fn" ]]; then
         output_fn="${input_vcf_prefix}"
     fi
 
